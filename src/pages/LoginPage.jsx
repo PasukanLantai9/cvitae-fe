@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const SignInIllustration = () => {
   return (
     <img
-      src="./public/registerimg.png"
+      src="./public/loginimg.png"
       alt="Sign Up Illustration"
       className="w-[300px] max-w-md mx-auto lg:max-w-lg rounded-lg object-contain"
     />
