@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef, useMemo} from 'react';
 import { useNavigate } from 'react-router-dom';
 import GoHTMLTemplater from '../utils/GoHTMLTemplater';
 import {useNameModal} from "../hooks/useNameModal.jsx";
 
 function Dashboard() {
-    const navigate = useNavigate();
+const navigate = useNavigate();
     const [rawTemplateHtml, setRawTemplateHtml] = useState('');
     const [templateData, setTemplateData] = useState(null);
     const [processedTemplateHtml, setProcessedTemplateHtml] = useState('');
@@ -170,14 +170,12 @@ function Dashboard() {
             return;
         }
 
-        // Minta user input nama CV lewat modal (asumsikan sudah dapat di variable `cvName`)
-        const cvName = await showModalAndGetName(); // contoh fungsi modal async, ganti sesuai implementasimu
+        const cvName = await showModalAndGetName();
         if (!cvName) {
             return
         }
 
         try {
-            // POST request ke backend buat bikin resume baru, hanya kirim { name }
             const token = localStorage.getItem('accessToken');
             const response = await fetch(`${apiBaseUrl}/resume`, {
                 method: 'POST',
@@ -189,7 +187,6 @@ function Dashboard() {
 
             const created = await response.json();
 
-            // Buat object lengkap dari template + data backend
             const newResumeObject = {
                 ...JSON.parse(JSON.stringify(templateData)),
                 id: created.id,
@@ -202,7 +199,6 @@ function Dashboard() {
 
             console.log("Created new resume:", newResumeObject);
 
-            // Navigate ke halaman resume yang baru dengan id dari backend
             navigate(`/resume/${created.id}`, {
                 state: {
                     resumeData: newResumeObject,
@@ -233,17 +229,22 @@ function Dashboard() {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (response.status === 401) { return; }
-            if (!response.ok) { // API Delete mungkin mengembalikan 204 atau 200
+            if (response.status === 401) { // Sesi berakhir atau token tidak valid
+                // Anda mungkin ingin mengarahkan ke login atau menampilkan pesan error spesifik
+                setResumesError("Sesi Anda telah berakhir. Silakan login kembali.");
+                localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('sessionID');
+                navigate('/login');
+                return;
+            }
+            if (!response.ok) {
                 let errorMsg = `Failed to delete resume (Status: ${response.status})`;
                 try {
                     const errorData = await response.json();
                     errorMsg = errorData.errors?.message || errorData.message || errorMsg;
-                    throw new Error(errorMsg);
                 } catch (e) {
-                    throw new Error(e);
+                    // Biarkan errorMsg default jika parsing JSON gagal
                 }
-
+                throw new Error(errorMsg);
             }
             console.log(`Resume dengan ID ${resumeIdToDelete} berhasil dihapus.`);
             setMyResumes(prevResumes => prevResumes.filter(resume => resume.id !== resumeIdToDelete));
@@ -252,7 +253,7 @@ function Dashboard() {
             alert(`Error: ${error.message}`);
         } finally {
             setIsSpecificResumeLoading(false);
-            setOpenDropdownId(null); // Selalu tutup dropdown
+            setOpenDropdownId(null);
         }
     };
 
@@ -390,9 +391,9 @@ function Dashboard() {
                     My Resumes
                 </h1>
                 {isResumesLoading ? (
-                    <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-12">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2859A6]"></div>
-                        <p className="ml-3 text-gray-600 Poppins">Loading My Resumes...</p>
+                    <div className="flex items-center Poppins"> {/* Modifikasi: Menggunakan flex untuk spinner dan teks */}
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2859A6]"></div>
+                        <p className="ml-3 text-gray-600">Loading My Resumes...</p>
                     </div>
                 ) : resumesError ? (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative Poppins" role="alert">
@@ -400,38 +401,35 @@ function Dashboard() {
                         <span className="block sm:inline"> {resumesError}</span>
                     </div>
                 ) : myResumes.length > 0 ? (
-                    // PERUBAHAN DI SINI: Tambahkan div dengan kelas grid
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"> {/* Modifikasi: grid-cols-1 untuk mobile default */}
                         {myResumes.map(resume => (
-                            <div key={resume.id || resume.name} className="flex flex-col bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl border-2 border-[#2859A6] focus-within:border-[#2859A6]">
-                                <div className="h-40 bg-gray-200 flex items-center justify-center relative overflow-hidden">
-                                    {/* Placeholder untuk thumbnail resume atau gambar sebenarnya jika ada */}
+                            <div key={resume.id || resume.name} className="flex flex-col bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-2xl border-2 border-transparent hover:border-[#2859A6] focus-within:border-[#2859A6]">
+                                <div className="h-40 bg-gray-200 flex items-center justify-center relative overflow-hidden group"> {/* Tambahkan group di sini */}
                                     {resume.previewImageUrl ? (
                                         <img src={resume.previewImageUrl} alt={`Preview of ${resume.name}`} className="w-full h-full object-cover" />
                                     ) : (
                                         <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                     )}
                                     
-                                    {/* Tombol Titik Tiga (Opsi) */}
-                                    <div className="absolute top-2 right-2">
+                                    <div className="absolute top-2 right-2 z-10"> {/* Pastikan z-index lebih tinggi dari overlay jika ada */}
                                         <button
                                             onClick={(e) => { e.stopPropagation(); toggleResumeOptions(resume.id); }}
-                                            className="p-1.5 bg-gray-700 bg-opacity-30 hover:bg-opacity-50 rounded-full text-white focus:outline-none focus:ring-2 focus:ring-gray-400"
+                                            className="p-1.5 bg-black bg-opacity-40 hover:bg-opacity-60 rounded-full text-white focus:outline-none focus:ring-2 focus:ring-gray-300 transition-opacity"
                                             aria-label="Resume options"
+                                            title="Options"
                                         >
-                                            <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" >
+                                            <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" >
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
                                             </svg>
                                         </button>
-                                        {/* Dropdown untuk Opsi Delete */}
                                         {openDropdownId === resume.id && (
                                             <div
                                                 className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200 origin-top-right"
-                                                onClick={(e) => e.stopPropagation()}
+                                                onClick={(e) => e.stopPropagation()} // Mencegah penutupan dropdown saat diklik di dalamnya
                                             >
                                                 <button
                                                     onClick={() => handleDeleteResume(resume.id)}
-                                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center"
+                                                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center transition-colors"
                                                 >
                                                     <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12.56 0c1.153 0 2.24.032 3.287.094M5.25 5.79c-.003.004-.006.007-.009.01l-.006.006l-.004.005l-.002.002l-.001.001v.001M5.25 5.79l-.003.004l-.006.007l-.004.005L5.23 5.8M5.25 5.79l-.003.004L5.24 5.811M5.25 5.79l-.003.004l-.006.007l-.004.005-.002.002-.001.001v.001a.75.75 0 01-.703.742L3.263 6.99c-.34-.058-.664-.133-.956-.228a2.25 2.25 0 01-1.572-2.344V3.75a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 3.75v.693a2.25 2.25 0 01-1.572 2.344c-.292.095-.616.17-.956.228l-1.267.215a.75.75 0 01-.703-.742v-.001l-.001-.001-.002-.002-.004-.005-.006-.007-.003-.004zm-1.89 6.328c.1-.006.198-.013.296-.021l1.267-.215a.75.75 0 01.703.742v.001l.001.001.002.002.004.005.006.007.003.004M18.75 5.79c.003.004.006.007.009.01l.006.006.004.005.002.002.001.001v.001M18.75 5.79l.003.004.006.007.004.005L18.77 5.8M18.75 5.79l.003.004L18.76 5.811M18.75 5.79l.003.004l.006.007.004.005.002.002.001.001v.001a.75.75 0 00.703-.742l1.267-.215c.098.008.196.015.296.021m-6.75-1.228a.75.75 0 000 1.5h3a.75.75 0 000-1.5h-3z" />
@@ -441,33 +439,43 @@ function Dashboard() {
                                             </div>
                                         )}
                                     </div>
+                                    {/* Overlay saat hover untuk tombol Edit/View (opsional) */}
+                                    <div
+                                        className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
+                                        onClick={() => handleContinueResume(resume.id)} // Klik pada overlay juga akan mengedit
+                                    >
+                                        <button
+                                            onClick={(e) => {e.stopPropagation(); handleContinueResume(resume.id);}} // Stop propagation agar tidak memicu toggleResumeOptions jika ada
+                                            className="text-xs Poppins px-4 py-2 bg-[#2859A6] hover:bg-[#1e4a8a] text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 disabled:opacity-0"
+                                            disabled={isSpecificResumeLoading}
+                                        >
+                                            Edit / View
+                                        </button>
+                                    </div>
                                 </div>
-                                {/* ... sisa info kartu ... */}
-                                <div className="p-4 flex-grow flex flex-col justify-between">
+                                <div className="p-3 sm:p-4 flex-grow flex flex-col justify-between">
                                     <div>
-                                        <h3 className="font-semibold Poppins text-gray-800 text-base truncate" title={resume.name || "Untitled Resume"}>{resume.name || "Untitled Resume"}</h3>
+                                        <h3 className="font-semibold Poppins text-gray-800 text-sm sm:text-base truncate" title={resume.name || "Untitled Resume"}>{resume.name || "Untitled Resume"}</h3>
                                         <p className="text-gray-500 text-xs Poppins mt-1">
                                             Created: {new Date(resume.createdAt || Date.now()).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                                         </p>
+                                        <p className="text-gray-500 text-xs Poppins mt-0.5"> {/* Tambahkan last modified jika ada */}
+                                            Last Modified: {new Date(resume.updatedAt || resume.createdAt || Date.now()).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        </p>
                                     </div>
-                                    <div className="mt-4 flex justify-end space-x-2">
-                                        <button
-                                            onClick={() => handleContinueResume(resume.id, resume.name)}
-                                            className="text-xs Poppins px-3 py-1 bg-[#2859A6] hover:bg-[#1e4a8a] text-white rounded-md disabled:opacity-50"
-                                            disabled={isSpecificResumeLoading && openDropdownId !== resume.id} // Hanya disable jika loading untuk resume lain
-                                        >
-                                            {(isSpecificResumeLoading && openDropdownId === resume.id) ? "Loading..." : "Edit / View"}
-                                        </button>
-                                    </div>
+                                    {/* Tombol Edit/View dipindahkan ke overlay di atas */}
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                     <div className="text-center py-8">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" /* ... ikon no resume ... */ />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900 Poppins">No resumes</h3>
-                        <p className="mt-1 text-sm text-gray-500 Poppins">Get started by creating a new resume from a template.</p>
+                     <div className="text-center py-8 Poppins">
+                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0V4.5m0 15l-3.75-3.75M12 19.5l3.75-3.75" /> {/* Ikon yang lebih menggambarkan "tidak ada resume" */}
+                        </svg>
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No resumes found</h3>
+                        <p className="mt-1 text-sm text-gray-500">Get started by creating a new resume from a template.</p>
                     </div>
                 )}
             </div>

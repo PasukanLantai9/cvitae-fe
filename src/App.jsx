@@ -33,11 +33,7 @@ function App() {
 
         {/* Rute untuk Alur Pembuatan/Edit Resume */}
           <Route path="/resume/:resumeId" element={<ResumeFlowPage />}>
-              <Route path="personal" element={<PersonalInformationPage />} />
-              <Route path="experience" element={<ExperiencePage />} />
-              <Route path="education" element={<EducationPage />} />
-              <Route path="organisation" element={<OrganisationPage />} />
-              <Route path="skills_achievements" element={<SkillsAchievementsPage />} />
+              
           </Route>
 
         {/* Fallback atau redirect jika path tidak cocok (opsional) */}
