@@ -8,8 +8,8 @@ const initialEducationEntry = {
     location: '',
     startDate: { month: '', year: 0 },
     endDate: { month: '', year: 0 },
-    gpa: '',
-    maxGpa: '',
+    gpa: 0.0,
+    maxGpa: 0.0,
     elaboration: [{ text: '' }],
 };
 
@@ -26,8 +26,8 @@ const mapFlatToStructured = (flatEdu) => ({
         month: flatEdu.endDateMonth || '',
         year: flatEdu.endDateYear ? parseInt(flatEdu.endDateYear, 10) : 0,
     },
-    gpa: flatEdu.gpa || '',
-    maxGpa: flatEdu.maxGpa || '',
+    gpa: isNaN(parseFloat(flatEdu.gpa)) ? 0.0 : parseFloat(flatEdu.gpa),
+    maxGpa: isNaN(parseFloat(flatEdu.maxGpa)) ? 0.0 : parseFloat(flatEdu.maxGPa),
     elaboration: flatEdu.elaboration ? [{ text: flatEdu.elaboration }] : [{ text: '' }],
 });
 
@@ -41,17 +41,17 @@ const mapStructuredToFlat = (edu) => ({
     startDateYear: edu.startDate?.year || 0,
     endDateMonth: edu.endDate?.month || '',
     endDateYear: edu.endDate?.year || 0,
-    gpa: edu.gpa || '',
-    maxGpa: edu.maxGpa || '',
+    gpa: edu.gpa || 0.0,
+    maxGpa: edu.maxGpa || 0.0,
     elaboration: edu.elaboration?.[0]?.text || '',
 });
 
 
-const InputField = ({ label, name, value, onChange, placeholder }) => (
+const InputField = ({ label, name, value, onChange, placeholder, type }) => (
     <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
         <input
-            type="text"
+            type={type || 'text'}
             name={name}
             value={value || ''}
             onChange={onChange}
@@ -79,13 +79,20 @@ const EducationPage = ({ data, onDataChange }) => {
 
 
     const [flatData, setFlatData] = useState(data.map(mapStructuredToFlat));
-    const handleChange = (index, e) => {
-        const { name, value } = e.target;
-        const updated = data.map((edu, idx) =>
-            idx === index ? { ...edu, [name]: value } : edu
-        );
-        onDataChange(updated);
-    };
+const numericFields = ['gpa', 'maxGpa'];
+
+const handleChange = (index, e) => {
+    const { name, value } = e.target;
+    const parsedValue = numericFields.includes(name)
+        ? value === '' ? '' : parseFloat(value)
+        : value;
+
+    const updated = data.map((edu, idx) =>
+        idx === index ? { ...edu, [name]: parsedValue } : edu
+    );
+
+    onDataChange(updated);
+};
 
     const handleNestedChange = (index, section, field, value) => {
         const updated = data.map((edu, idx) =>
@@ -158,8 +165,8 @@ const EducationPage = ({ data, onDataChange }) => {
                         />
                     </div>
                     <div className="flex gap-4">
-                        <InputField label="GPA" name="gpa" value={edu.gpa} onChange={(e) => handleChange(idx, e)} />
-                        <InputField label="Max GPA" name="maxGpa" value={edu.maxGpa} onChange={(e) => handleChange(idx, e)} />
+                        <InputField label="GPA" name="gpa" value={edu.gpa} type="number" onChange={(e) => handleChange(idx, e)} />
+                        <InputField label="Max GPA" name="maxGpa" value={edu.maxGpa} type="number" onChange={(e) => handleChange(idx, e)} />
                     </div>
                     <TextAreaField
                         label="Description / Thesis"
