@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 
 const initialOtherEntry = {
@@ -13,26 +13,26 @@ const initialOtherEntry = {
     }
 };
 
-const mapStructuredToFlat = (entry) => ({
-    category: entry.category || '',
-    name: entry.name || '',
-    dateMonth: entry.date?.month || '',
-    dateYear: entry.date?.year ? parseInt(entry.data?.year, 10) : 0,
-    elaboration: entry.elaboration?.text || '',
-});
+// const mapStructuredToFlat = (entry) => ({
+//     category: entry.category || '',
+//     name: entry.name || '',
+//     dateMonth: entry.date?.month || '',
+//     dateYear: entry.date?.year ? parseInt(entry.data?.year, 10) : 0,
+//     elaboration: entry.elaboration?.text || '',
+// });
 
 
-const mapFlatToStructured = (flatEntry) => ({
-    category: flatEntry.category || '',
-    name: flatEntry.name || '',
-    date: {
-        month: flatEntry.dateMonth || '',
-        year: flatEntry.dateYear || 0,
-    },
-    elaboration: {
-        text: flatEntry.elaboration || '',
-    },
-});
+// const mapFlatToStructured = (flatEntry) => ({
+//     category: flatEntry.category || '',
+//     name: flatEntry.name || '',
+//     date: {
+//         month: flatEntry.dateMonth || '',
+//         year: flatEntry.dateYear || 0,
+//     },
+//     elaboration: {
+//         text: flatEntry.elaboration || '',
+//     },
+// });
 
 
 const InputField = ({ label, name, value, onChange, placeholder }) => (
@@ -64,8 +64,7 @@ const TextAreaField = ({ label, name, value, onChange, placeholder }) => (
 );
 
 const SkillsAchievementsPage = ({ data, onDataChange }) => {
-
-    const [flatData, setFlatData] = useState(data.map(mapStructuredToFlat));
+    // const [flatData, setFlatData] = useState(data.map(mapStructuredToFlat));
     const handleChange = (index, e) => {
         const { name, value } = e.target;
 
@@ -75,7 +74,7 @@ const SkillsAchievementsPage = ({ data, onDataChange }) => {
             const newEntry = { ...entry };
 
             if (name === 'month' || name === 'year') {
-                newEntry.date = { ...entry.date, [name]: value };
+                newEntry.date = { ...entry.date, [name]: name === 'year' ? parseInt(value, 10) || 0 : value };
             } else if (name === 'description') {
                 newEntry.elaboration = { ...entry.elaboration, text: value };
             } else {

@@ -83,7 +83,7 @@ const OrganisationPage = ({ data = [], onDataChange }) => {
                     ...entry,
                     [dateKey]: {
                         ...entry[dateKey],
-                        [field]: value
+                        [field]: field === 'year' ? parseInt(value, 10) || 0 : value
                     }
                 };
             } else if (name === 'current') {
