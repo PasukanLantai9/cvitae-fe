@@ -6,7 +6,7 @@ const initialOtherEntry = {
     name: '',
     date: {
         month: '',
-        year: ''
+        year: 0
     },
     elaboration: {
         text: ''
@@ -17,7 +17,7 @@ const mapStructuredToFlat = (entry) => ({
     category: entry.category || '',
     name: entry.name || '',
     dateMonth: entry.date?.month || '',
-    dateYear: entry.date?.year || '',
+    dateYear: entry.date?.year ? parseInt(entry.data?.year, 10) : 0,
     elaboration: entry.elaboration?.text || '',
 });
 
@@ -27,7 +27,7 @@ const mapFlatToStructured = (flatEntry) => ({
     name: flatEntry.name || '',
     date: {
         month: flatEntry.dateMonth || '',
-        year: flatEntry.dateYear || '',
+        year: flatEntry.dateYear || 0,
     },
     elaboration: {
         text: flatEntry.elaboration || '',
