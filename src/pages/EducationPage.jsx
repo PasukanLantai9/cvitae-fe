@@ -6,14 +6,13 @@ const initialEducationEntry = {
     degreeLevel: '',
     major: '',
     location: '',
-    startDate: { month: '', year: 0 }, // Menggunakan 0 untuk tahun kosong agar konsisten dengan parseInt
-    endDate: { month: '', year: 0 },   // Menggunakan 0 untuk tahun kosong
+    startDate: { month: '', year: 0 }, 
+    endDate: { month: '', year: 0 },   
     gpa: '',
     maxGpa: '',
-    elaboration: [{ text: '' }], // Sesuai struktur, array dengan satu objek teks kosong
+    elaboration: [{ text: '' }], 
 };
 
-// Fungsi untuk mengecek apakah sebuah entri pendidikan benar-benar kosong
 const isEducationEntryEmpty = (edu) => {
     if (!edu) return true;
     return !edu.school &&
@@ -27,14 +26,13 @@ const isEducationEntryEmpty = (edu) => {
            (!edu.elaboration || edu.elaboration.length === 0 || (edu.elaboration.length === 1 && !edu.elaboration[0].text));
 };
 
-// Komponen InputField dan TextAreaField (diasumsikan sama seperti sebelumnya, tidak diubah)
 const InputField = ({ label, name, value, onChange, placeholder, type = 'text' }) => (
     <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
         <input
-            type={type} // Memungkinkan type="number" untuk tahun jika diinginkan
+            type={type} 
             name={name}
-            value={value === 0 && (name === 'startDateYear' || name === 'endDateYear') ? '' : (value || '')} // Tampilkan string kosong untuk tahun 0
+            value={value === 0 && (name === 'startDateYear' || name === 'endDateYear') ? '' : (value || '')} 
             onChange={onChange}
             placeholder={placeholder}
             className="w-full px-4 py-2.5 bg-gray-100 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2859A6] text-sm"
@@ -58,32 +56,28 @@ const TextAreaField = ({ label, name, value, onChange, placeholder }) => (
 
 
 const EducationPage = ({ data, onDataChange }) => {
-    // State lokal untuk UI, selalu ada minimal satu entri
+
     const [uiEducationEntries, setUiEducationEntries] = useState(() => {
         if (data && data.length > 0) {
-            return JSON.parse(JSON.stringify(data)); // Deep clone data props
+            return JSON.parse(JSON.stringify(data)); 
         }
-        return [JSON.parse(JSON.stringify(initialEducationEntry))]; // Mulai dengan satu form kosong
+        return [JSON.parse(JSON.stringify(initialEducationEntry))]; 
     });
 
-    // Sinkronisasi dengan props `data`
     useEffect(() => {
         if (data && data.length > 0) {
             setUiEducationEntries(JSON.parse(JSON.stringify(data)));
         } else {
-            // Jika data dari parent kosong, pastikan UI tetap menampilkan satu form kosong,
-            // kecuali jika uiEducationEntries sudah dalam kondisi tersebut.
             const isAlreadySinglePlaceholder = uiEducationEntries.length === 1 && isEducationEntryEmpty(uiEducationEntries[0]);
             if (!isAlreadySinglePlaceholder) {
                 setUiEducationEntries([JSON.parse(JSON.stringify(initialEducationEntry))]);
             }
         }
-    }, [data]); // Hanya bergantung pada `data`
+    }, [data]);
 
-    // Fungsi untuk memproses dan mengirim data yang valid ke parent
     const processAndSendData = (currentEntries) => {
         const actualEntries = currentEntries.filter(edu => !isEducationEntryEmpty(edu));
-        onDataChange(actualEntries); // Kirim array entri yang benar-benar diisi
+        onDataChange(actualEntries); 
     };
 
     const handleChange = (index, e) => {
@@ -99,8 +93,7 @@ const EducationPage = ({ data, onDataChange }) => {
         const updatedEntries = uiEducationEntries.map((edu, idx) => {
             if (idx === index) {
                 const isYearField = field === 'year';
-                // Untuk field tahun, parse ke integer. Jika string kosong atau invalid, jadi 0.
-                // Untuk field bulan, biarkan sebagai string.
+
                 const processedValue = (section === 'startDate' || section === 'endDate') && isYearField
                     ? parseInt(value, 10) || 0 // Pastikan tahun adalah angka, atau 0 jika kosong/invalid
                     : value;
@@ -144,6 +137,11 @@ const EducationPage = ({ data, onDataChange }) => {
         setUiEducationEntries(updatedEntries);
         processAndSendData(updatedEntries);
     };
+    
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
 
     return (
         <div className="p-4">
@@ -155,39 +153,74 @@ const EducationPage = ({ data, onDataChange }) => {
                     <InputField label="Location" name="location" value={edu.location} onChange={(e) => handleChange(idx, e)} placeholder="e.g. Depok, Indonesia" />
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <InputField
-                            label="Start Month"
-                            name="startDateMonth" // Nama disesuaikan untuk kejelasan, tapi tidak langsung jadi key di state
-                            value={edu.startDate?.month}
-                            onChange={(e) => handleNestedChange(idx, 'startDate', 'month', e.target.value)}
-                            placeholder="e.g. August"
-                        />
-                        <InputField
-                            label="Start Year"
-                            name="startDateYear" // Nama disesuaikan
-                            type="number" // Gunakan type number untuk input tahun
-                            value={edu.startDate?.year}
-                            onChange={(e) => handleNestedChange(idx, 'startDate', 'year', e.target.value)}
-                            placeholder="e.g. 2018"
-                        />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <InputField
-                            label="End Month"
-                            name="endDateMonth" // Nama disesuaikan
-                            value={edu.endDate?.month}
-                            onChange={(e) => handleNestedChange(idx, 'endDate', 'month', e.target.value)}
-                            placeholder="e.g. July"
-                        />
-                        <InputField
-                            label="End Year"
-                            name="endDateYear" // Nama disesuaikan
-                            type="number" // Gunakan type number untuk input tahun
-                            value={edu.endDate?.year}
-                            onChange={(e) => handleNestedChange(idx, 'endDate', 'year', e.target.value)}
-                            placeholder="e.g. 2022"
-                        />
-                    </div>
+    {/* Penggantian untuk InputField Start Month */}
+    <div>
+        <label htmlFor={`edu-startDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+            Start Month
+        </label>
+        <select
+            id={`edu-startDateMonth-${idx}`}
+            name="startDateMonth" // Nama tetap dipertahankan untuk konsistensi
+            value={edu.startDate?.month || ""} // Akses nilai dari state nested, default ke string kosong
+            onChange={(e) => handleNestedChange(idx, 'startDate', 'month', e.target.value)}
+            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        >
+            <option value="" disabled>
+                e.g. August
+            </option>
+            {months.map((month) => (
+                <option key={month} value={month}>
+                    {month}
+                </option>
+            ))}
+        </select>
+    </div>
+
+    {/* InputField untuk Start Year tetap sama */}
+    <InputField
+        label="Start Year"
+        name="startDateYear"
+        type="number"
+        value={edu.startDate?.year}
+        onChange={(e) => handleNestedChange(idx, 'startDate', 'year', e.target.value)}
+        placeholder="e.g. 2018"
+    />
+</div>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Margin top bisa disesuaikan jika perlu, misal mt-4 */}
+    {/* Penggantian untuk InputField End Month */}
+    <div>
+        <label htmlFor={`edu-endDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+            End Month
+        </label>
+        <select
+            id={`edu-endDateMonth-${idx}`}
+            name="endDateMonth" // Nama tetap dipertahankan
+            value={edu.endDate?.month || ""} // Akses nilai dari state nested
+            onChange={(e) => handleNestedChange(idx, 'endDate', 'month', e.target.value)}
+            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        >
+            <option value="" disabled>
+                e.g. July
+            </option>
+            {months.map((month) => (
+                <option key={month} value={month}>
+                    {month}
+                </option>
+            ))}
+        </select>
+    </div>
+
+    {/* InputField untuk End Year tetap sama */}
+    <InputField
+        label="End Year"
+        name="endDateYear"
+        type="number"
+        value={edu.endDate?.year}
+        onChange={(e) => handleNestedChange(idx, 'endDate', 'year', e.target.value)}
+        placeholder="e.g. 2022"
+    />
+</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <InputField label="GPA" name="gpa" value={edu.gpa} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 3.75" />
                         <InputField label="Max GPA (Optional)" name="maxGpa" value={edu.maxGpa} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 4.00 or 100" />

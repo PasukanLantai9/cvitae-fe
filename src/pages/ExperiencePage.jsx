@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// Entri pengalaman awal yang kosong
 const initialExperienceEntry = {
     jobTitle: '',
     companyName: '',
@@ -13,7 +12,12 @@ const initialExperienceEntry = {
     description: '',
 };
 
-// Fungsi untuk mengecek apakah sebuah entri pengalaman (dalam format flat) benar-benar kosong
+
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 const isFlatExperienceEntryEmpty = (exp) => {
     return !exp.jobTitle &&
            !exp.companyName &&
@@ -26,7 +30,6 @@ const isFlatExperienceEntryEmpty = (exp) => {
            exp.current === false;
 };
 
-// Map flat experience object (form state) to structured backend format
 const mapFlatToStructured = (flatExp) => ({
     startDate: {
         month: flatExp.startDateMonth,
@@ -42,17 +45,15 @@ const mapFlatToStructured = (flatExp) => ({
     current: flatExp.current,
     elaboration: flatExp.description ? [{ text: flatExp.description }] : [],
 });
-
-// Map structured experience (from props) to flat form data
 const mapStructuredToFlat = (exp) => ({
     jobTitle: exp.roleTitle || '',
     companyName: exp.companyName || '',
     companyLocation: exp.location || '',
     current: exp.current || false,
     startDateMonth: exp.startDate?.month || '',
-    startDateYear: exp.startDate?.year ? String(exp.startDate.year) : '', // Pastikan string untuk input
+    startDateYear: exp.startDate?.year ? String(exp.startDate.year) : '', 
     endDateMonth: exp.endDate?.month || '',
-    endDateYear: exp.endDate?.year ? String(exp.endDate.year) : '',     // Pastikan string untuk input
+    endDateYear: exp.endDate?.year ? String(exp.endDate.year) : '',    
     description: exp.elaboration?.[0]?.text || '',
 });
 
@@ -84,30 +85,27 @@ const TextAreaField = ({ label, name, value, onChange, placeholder }) => (
     </div>
 );
 
+
+
 const ExperiencePage = ({ data, onDataChange }) => {
-    // Inisialisasi flatData: jika data dari props kosong, mulai dengan satu form kosong.
     const [flatData, setFlatData] = useState(() => {
         if (data && data.length > 0) {
             return data.map(mapStructuredToFlat);
         }
-        return [{ ...initialExperienceEntry }]; // Selalu ada minimal satu form
+        return [{ ...initialExperienceEntry }]; 
     });
 
-    // Sinkronisasi jika props `data` berubah
     useEffect(() => {
         if (data && data.length > 0) {
             setFlatData(data.map(mapStructuredToFlat));
         } else {
-            // Jika data dari parent kosong, pastikan UI tetap menampilkan satu form kosong,
-            // kecuali jika flatData sudah dalam kondisi tersebut (satu form dan kosong).
             const isAlreadySinglePlaceholder = flatData.length === 1 && isFlatExperienceEntryEmpty(flatData[0]);
             if (!isAlreadySinglePlaceholder) {
                 setFlatData([{ ...initialExperienceEntry }]);
             }
         }
-    }, [data]); // Hanya bergantung pada `data` dari props
+    }, [data]); 
 
-    // Fungsi untuk memproses dan mengirim data ke parent
     const processAndSendData = (currentFlatEntries) => {
         // Filter entri yang benar-benar diisi (bukan placeholder kosong)
         const actualExperiences = currentFlatEntries.filter(exp => !isFlatExperienceEntryEmpty(exp));
@@ -126,12 +124,11 @@ const ExperiencePage = ({ data, onDataChange }) => {
     const addExperience = () => {
         const updatedFlatData = [...flatData, { ...initialExperienceEntry }];
         setFlatData(updatedFlatData);
-        processAndSendData(updatedFlatData); // Kirim data setelah ada potensi perubahan
+        processAndSendData(updatedFlatData); 
     };
 
     const removeExperience = (index) => {
         let updatedFlatData = flatData.filter((_, idx) => idx !== index);
-        // Jika setelah menghapus semua form menjadi kosong, pastikan UI tetap menampilkan satu form kosong.
         if (updatedFlatData.length === 0) {
             updatedFlatData = [{ ...initialExperienceEntry }];
         }
@@ -147,20 +144,67 @@ const ExperiencePage = ({ data, onDataChange }) => {
                     <InputField label="Company Name" name="companyName" value={exp.companyName} onChange={(e) => handleChange(idx, e)} placeholder="e.g. Google" />
                     <InputField label="Location" name="companyLocation" value={exp.companyLocation} onChange={(e) => handleChange(idx, e)} placeholder="e.g. Jakarta, Indonesia" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <InputField label="Start Month" name="startDateMonth" value={exp.startDateMonth} onChange={(e) => handleChange(idx, e)} placeholder="e.g. January" />
-                        <InputField label="Start Year" name="startDateYear" value={exp.startDateYear} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 2020" type="number" />
-                    </div>
-                    {!exp.current && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 sm:mt-0"> {/* Tambah margin top jika bukan current */}
-                            <InputField label="End Month" name="endDateMonth" value={exp.endDateMonth} onChange={(e) => handleChange(idx, e)} placeholder="e.g. December" />
-                            <InputField label="End Year" name="endDateYear" value={exp.endDateYear} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 2022" type="number" />
-                        </div>
-                    )}
-                    <div className="mb-4 mt-4 flex items-center"> {/* Tambah margin top */}
+    {/* Penggantian untuk Start Month */}
+    <div>
+        <label htmlFor={`startDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+            Start Month
+        </label>
+        <select
+            id={`startDateMonth-${idx}`}
+            name="startDateMonth"
+            value={exp.startDateMonth || ""} // Default ke string kosong jika belum ada nilai
+            onChange={(e) => handleChange(idx, e)}
+            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+        >
+            <option value="" disabled>
+                e.g. January
+            </option>
+            {months.map((month) => (
+                <option key={month} value={month}>
+                    {month}
+                </option>
+            ))}
+        </select>
+    </div>
+
+    {/* InputField untuk Start Year tetap sama */}
+    <InputField label="Start Year" name="startDateYear" value={exp.startDateYear} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 2020" type="number" />
+</div>
+
+{!exp.current && (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 sm:mt-0">
+        {/* Penggantian untuk End Month */}
+        <div>
+            <label htmlFor={`endDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+                End Month
+            </label>
+            <select
+                id={`endDateMonth-${idx}`}
+                name="endDateMonth"
+                value={exp.endDateMonth || ""} // Default ke string kosong jika belum ada nilai
+                onChange={(e) => handleChange(idx, e)}
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            >
+                <option value="" disabled>
+                    e.g. December
+                </option>
+                {months.map((month) => (
+                    <option key={month} value={month}>
+                        {month}
+                    </option>
+                ))}
+            </select>
+        </div>
+
+        {/* InputField untuk End Year tetap sama */}
+        <InputField label="End Year" name="endDateYear" value={exp.endDateYear} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 2022" type="number" />
+    </div>
+)}
+                    <div className="mb-4 mt-4 flex items-center"> 
                         <input
                             type="checkbox"
                             name="current"
-                            id={`current-${idx}`} // Tambahkan id unik untuk label
+                            id={`current-${idx}`} 
                             checked={exp.current}
                             onChange={(e) => handleChange(idx, e)}
                             className="h-4 w-4 text-[#2859A6] border-gray-300 rounded focus:ring-[#1e4a8a]"
@@ -174,14 +218,8 @@ const ExperiencePage = ({ data, onDataChange }) => {
                         onChange={(e) => handleChange(idx, e)}
                         placeholder="Describe your responsibilities, achievements, and skills used..."
                     />
-                    {/* Tombol Remove hanya ditampilkan jika ada lebih dari satu form,
-                        atau jika ini satu-satunya form tapi sudah diisi (tidak kosong).
-                        Ini mencegah pengguna menghapus form terakhir yang masih kosong.
-                        Namun, untuk selalu menjaga satu form terlihat, logika di removeExperience sudah cukup.
-                        Kita bisa menyederhanakan kondisi tombol remove menjadi selalu ada jika flatData.length >=1
-                        karena removeExperience akan memastikan satu form tetap ada jika semua dihapus.
-                    */}
-                    {flatData.length >= 1 && ( // Selalu bisa remove jika ada minimal 1, fungsi removeExperience akan handle sisanya
+                
+                    {flatData.length >= 1 && ( 
                         <button
                             type="button"
                             onClick={() => removeExperience(idx)}
