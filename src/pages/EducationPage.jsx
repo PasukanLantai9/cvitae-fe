@@ -122,11 +122,11 @@ const handleChange = (index, e) => {
 
     const addEducation = () => onDataChange([...data, { ...initialEducationEntry }]);
 
-    const removeEducation = (index) => {
-        const filtered = flatData.filter((_, idx) => idx !== index);
-        setFlatData(filtered);
-        onDataChange(filtered.map(mapFlatToStructured));
-    };
+const removeEducation = (index) => {
+    const filtered = data.filter((_, idx) => idx !== index);
+    onDataChange(filtered);
+};
+
 
     return (
         <div className="p-4">

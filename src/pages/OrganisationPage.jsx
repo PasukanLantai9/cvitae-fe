@@ -97,11 +97,10 @@ const SkillsAchievementsPage = ({ data, onDataChange }) => {
 
     const addEntry = () => onDataChange([...data, { ...initialOtherEntry }]);
 
-    const removeEntry = (index) => {
-        const filtered = flatData.filter((_, idx) => idx !== index);
-        setFlatData(filtered);
-        onDataChange(filtered.map(mapFlatToStructured));
-    };
+    const removeEntry =(index) => {
+    const filtered = data.filter((_, idx) => idx !== index);
+    onDataChange(filtered);
+};
 
     return (
         <div className="p-4">
