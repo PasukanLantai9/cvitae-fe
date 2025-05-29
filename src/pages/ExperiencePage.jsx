@@ -12,24 +12,7 @@ const initialExperienceEntry = {
     description: '',
 };
 
-
-const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
-const isFlatExperienceEntryEmpty = (exp) => {
-    return !exp.jobTitle &&
-           !exp.companyName &&
-           !exp.companyLocation &&
-           !exp.startDateMonth &&
-           !exp.startDateYear &&
-           !exp.endDateMonth &&
-           !exp.endDateYear &&
-           !exp.description &&
-           exp.current === false;
-};
-
+// Map flat experience object (form state) to structured backend format
 const mapFlatToStructured = (flatExp) => ({
     startDate: {
         month: flatExp.startDateMonth,
@@ -45,15 +28,17 @@ const mapFlatToStructured = (flatExp) => ({
     current: flatExp.current,
     elaboration: flatExp.description ? [{ text: flatExp.description }] : [],
 });
+
+// Map structured experience (from props) to flat form data
 const mapStructuredToFlat = (exp) => ({
     jobTitle: exp.roleTitle || '',
     companyName: exp.companyName || '',
     companyLocation: exp.location || '',
     current: exp.current || false,
     startDateMonth: exp.startDate?.month || '',
-    startDateYear: exp.startDate?.year ? String(exp.startDate.year) : '', 
+    startDateYear: exp.startDate?.year || '',
     endDateMonth: exp.endDate?.month || '',
-    endDateYear: exp.endDate?.year ? String(exp.endDate.year) : '',    
+    endDateYear: exp.endDate?.year || '',
     description: exp.elaboration?.[0]?.text || '',
 });
 
@@ -85,80 +70,62 @@ const TextAreaField = ({ label, name, value, onChange, placeholder }) => (
     </div>
 );
 
-
-
 const ExperiencePage = ({ data, onDataChange }) => {
-    const [flatData, setFlatData] = useState(() => {
-        if (data && data.length > 0) {
-            return data.map(mapStructuredToFlat);
-        }
-        return [{ ...initialExperienceEntry }]; 
-    });
+    // Local flat data state for editing
+    const [flatData, setFlatData] = useState(data.map(mapStructuredToFlat));
 
+    // Sync props data -> local flatData on data prop changes
     useEffect(() => {
-        if (data && data.length > 0) {
-            setFlatData(data.map(mapStructuredToFlat));
-        } else {
-            const isAlreadySinglePlaceholder = flatData.length === 1 && isFlatExperienceEntryEmpty(flatData[0]);
-            if (!isAlreadySinglePlaceholder) {
-                setFlatData([{ ...initialExperienceEntry }]);
-            }
-        }
-    }, [data]); 
-
-    const processAndSendData = (currentFlatEntries) => {
-        // Filter entri yang benar-benar diisi (bukan placeholder kosong)
-        const actualExperiences = currentFlatEntries.filter(exp => !isFlatExperienceEntryEmpty(exp));
-        onDataChange(actualExperiences.map(mapFlatToStructured));
-    };
+        setFlatData(data.map(mapStructuredToFlat));
+    }, [data]);
 
     const handleChange = (index, e) => {
         const { name, value, type, checked } = e.target;
-        const updatedFlatData = flatData.map((exp, idx) =>
+        const updated = flatData.map((exp, idx) =>
             idx === index ? { ...exp, [name]: type === 'checkbox' ? checked : value } : exp
         );
-        setFlatData(updatedFlatData);
-        processAndSendData(updatedFlatData);
+        setFlatData(updated);
+        onDataChange(updated.map(mapFlatToStructured));
     };
 
     const addExperience = () => {
-        const updatedFlatData = [...flatData, { ...initialExperienceEntry }];
-        setFlatData(updatedFlatData);
-        processAndSendData(updatedFlatData); 
+        const updated = [...flatData, { ...initialExperienceEntry }];
+        setFlatData(updated);
+        onDataChange(updated.map(mapFlatToStructured));
     };
 
     const removeExperience = (index) => {
-        let updatedFlatData = flatData.filter((_, idx) => idx !== index);
-        if (updatedFlatData.length === 0) {
-            updatedFlatData = [{ ...initialExperienceEntry }];
-        }
-        setFlatData(updatedFlatData);
-        processAndSendData(updatedFlatData);
+        const filtered = flatData.filter((_, idx) => idx !== index);
+        setFlatData(filtered);
+        onDataChange(filtered.map(mapFlatToStructured));
     };
+
+    const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
 
     return (
         <div className="p-4">
             {flatData.map((exp, idx) => (
                 <div key={idx} className="border p-4 mb-6 rounded-md bg-gray-50">
-                    <InputField label="Job Title" name="jobTitle" value={exp.jobTitle} onChange={(e) => handleChange(idx, e)} placeholder="e.g. Software Engineer" />
-                    <InputField label="Company Name" name="companyName" value={exp.companyName} onChange={(e) => handleChange(idx, e)} placeholder="e.g. Google" />
-                    <InputField label="Location" name="companyLocation" value={exp.companyLocation} onChange={(e) => handleChange(idx, e)} placeholder="e.g. Jakarta, Indonesia" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {/* Penggantian untuk Start Month */}
-    <div>
-        <label htmlFor={`startDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+                    <InputField label="Job Title" name="jobTitle" value={exp.jobTitle} onChange={(e) => handleChange(idx, e)} />
+                    <InputField label="Company Name" name="companyName" value={exp.companyName} onChange={(e) => handleChange(idx, e)} />
+                    <InputField label="Location" name="companyLocation" value={exp.companyLocation} onChange={(e) => handleChange(idx, e)} />
+                    <div className="flex gap-4">
+    {/* Penggantian untuk InputField Start Month */}
+    <div className="flex flex-col flex-1"> {/* flex-1 agar mengisi ruang jika diperlukan, atau sesuaikan */}
+        <label htmlFor={`exp-startDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
             Start Month
         </label>
         <select
-            id={`startDateMonth-${idx}`}
-            name="startDateMonth"
-            value={exp.startDateMonth || ""} // Default ke string kosong jika belum ada nilai
+            id={`exp-startDateMonth-${idx}`}
+            name="startDateMonth" // Nama ini penting untuk handleChange(idx, e)
+            value={exp.startDateMonth || ""}
             onChange={(e) => handleChange(idx, e)}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
-            <option value="" disabled>
-                e.g. January
-            </option>
+            <option value="" disabled>Select month</option>
             {months.map((month) => (
                 <option key={month} value={month}>
                     {month}
@@ -168,26 +135,34 @@ const ExperiencePage = ({ data, onDataChange }) => {
     </div>
 
     {/* InputField untuk Start Year tetap sama */}
-    <InputField label="Start Year" name="startDateYear" value={exp.startDateYear} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 2020" type="number" />
+    {/* Jika InputField Anda tidak otomatis mengambil flex-1, Anda mungkin perlu membungkusnya juga */}
+    <div className="flex flex-col flex-1"> {/* Contoh pembungkusan jika InputField tidak punya struktur label sendiri */}
+         {/* Jika InputField sudah punya label, wrapper div mungkin tidak perlu, atau sesuaikan struktur InputField */}
+        <InputField 
+            label="Start Year" 
+            name="startDateYear" 
+            value={exp.startDateYear} 
+            onChange={(e) => handleChange(idx, e)} 
+            // Jika InputField Anda adalah input sederhana, Anda mungkin perlu menambahkan className="... w-full ..."
+        />
+    </div>
 </div>
 
 {!exp.current && (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 sm:mt-0">
-        {/* Penggantian untuk End Month */}
-        <div>
-            <label htmlFor={`endDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="flex gap-4 mt-4"> {/* Tambah mt-4 jika diperlukan, sesuai desain Anda */}
+        {/* Penggantian untuk InputField End Month */}
+        <div className="flex flex-col flex-1">
+            <label htmlFor={`exp-endDateMonth-${idx}`} className="block text-sm font-medium text-gray-700 mb-1">
                 End Month
             </label>
             <select
-                id={`endDateMonth-${idx}`}
-                name="endDateMonth"
-                value={exp.endDateMonth || ""} // Default ke string kosong jika belum ada nilai
+                id={`exp-endDateMonth-${idx}`}
+                name="endDateMonth" // Nama ini penting untuk handleChange(idx, e)
+                value={exp.endDateMonth || ""}
                 onChange={(e) => handleChange(idx, e)}
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
             >
-                <option value="" disabled>
-                    e.g. December
-                </option>
+                <option value="" disabled>Select month</option>
                 {months.map((month) => (
                     <option key={month} value={month}>
                         {month}
@@ -197,40 +172,41 @@ const ExperiencePage = ({ data, onDataChange }) => {
         </div>
 
         {/* InputField untuk End Year tetap sama */}
-        <InputField label="End Year" name="endDateYear" value={exp.endDateYear} onChange={(e) => handleChange(idx, e)} placeholder="e.g. 2022" type="number" />
+        <div className="flex flex-col flex-1">
+            <InputField 
+                label="End Year" 
+                name="endDateYear" 
+                value={exp.endDateYear} 
+                onChange={(e) => handleChange(idx, e)} 
+            />
+        </div>
     </div>
 )}
-                    <div className="mb-4 mt-4 flex items-center"> 
+                    <div className="mb-4 flex items-center">
                         <input
                             type="checkbox"
                             name="current"
-                            id={`current-${idx}`} 
                             checked={exp.current}
                             onChange={(e) => handleChange(idx, e)}
-                            className="h-4 w-4 text-[#2859A6] border-gray-300 rounded focus:ring-[#1e4a8a]"
+                            className="h-4 w-4 text-[#2859A6] border-gray-300 rounded"
                         />
-                        <label htmlFor={`current-${idx}`} className="ml-2 text-sm text-gray-700 cursor-pointer">Currently Working Here</label>
+                        <label className="ml-2 text-sm text-gray-700">Currently Working Here</label>
                     </div>
                     <TextAreaField
                         label="Job Description"
                         name="description"
                         value={exp.description}
                         onChange={(e) => handleChange(idx, e)}
-                        placeholder="Describe your responsibilities, achievements, and skills used..."
+                        placeholder="Describe your responsibilities..."
                     />
-                
-                    {flatData.length >= 1 && ( 
-                        <button
-                            type="button"
-                            onClick={() => removeExperience(idx)}
-                            className="text-sm font-medium text-red-600 hover:text-red-800 transition-colors duration-150"
-                        >
-                            Remove This Experience
+                    {flatData.length >= 1 && (
+                        <button type="button" onClick={() => removeExperience(idx)} className="text-red-600 text-sm">
+                            Remove Experience
                         </button>
                     )}
                 </div>
             ))}
-            <button
+              <button
                 type="button"
                 onClick={addExperience}
                 className="mt-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#2859A6] hover:bg-[#1e4a8a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2859A6] transition-colors duration-150"
@@ -242,3 +218,5 @@ const ExperiencePage = ({ data, onDataChange }) => {
 };
 
 export default ExperiencePage;
+
+
