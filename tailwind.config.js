@@ -1,14 +1,22 @@
+// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'], // Menjadikan Poppins font default
+        // Tambahkan Poppins ke font sans-serif atau buat key baru
+        sans: ['Poppins', 'sans-serif'], // Mengganti font sans default dengan Poppins
+        // atau
+        // poppins: ['Poppins', 'sans-serif'], // Membuat utilitas font-poppins
       },
+      colors: { // Contoh jika Anda ingin menggunakan warna hex langsung di config
+        'brand-blue': '#2859A6',
+        'brand-blue-dark': '#1e4a8a',
+      }
     },
   },
   plugins: [],

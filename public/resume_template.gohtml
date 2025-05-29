@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style type="text/css">
+        .resume {
+            color: #000;
+            font-family: Arial, sans-serif !important;
+            padding-bottom: 20px;
+            padding-left: 20px;
+            padding-right: 20px;
+            letter-spacing: 1px;
+        }
+        .header {
+            text-align: center;
+            width: 100%;
+        }
+        .header,
+        .header-left {
+            -webkit-border-horizontal-spacing: 2px;
+            -webkit-border-vertical-spacing: 0;
+        }
+        .header-left {
+            text-align: left;
+        }
+        .header-right-region {
+            padding-left: 16px;
+            padding-top: 2px;
+            vertical-align: top;
+        }
+        .header-image {
+            height: 80px;
+            width: 80px;
+        }
+        .header-name {
+            color: var(--header-color); /* Ensure these CSS variables are defined elsewhere or replace them */
+            font-size: var(--header-font) !important;
+            font-weight: 700;
+            padding-top: 20px;
+        }
+        .header-details a:link {
+            color: gray;
+            -webkit-text-decoration: none;
+            text-decoration: none;
+        }
+        .header-details,
+        .header-details-left {
+            font-size: var(--normal-font);
+        }
+        .header-details a,
+        .header-details-left a {
+            cursor: default;
+            pointer-events: none !important;
+        }
+        .header-address {
+            color: gray;
+            font-size: var(--normal-font);
+        }
+        .header-description {
+            font-size: var(--normal-font);
+            line-height: var(--line-height);
+            margin-top: 4px;
+            text-align: var(--word-justification);
+            white-space: pre-line;
+        }
+        .body-main-header {
+            color: var(--header-color);
+            font-size: var(--body-main-header-font);
+            font-weight: 700;
+            margin-left: 4px;
+            margin-top: 8px;
+            text-align: left;
+            text-align: var(--word-justification);
+            width: auto;
+        }
+        .body-border {
+            border-bottom: 1.5px solid #000;
+        }
+        .body-title-country-date {
+            border-spacing: 0;
+            font-size: var(--normal-font);
+            margin-top: 5px;
+            padding-left: 8px;
+            padding-right: 8px;
+            text-align: left;
+            width: 100%;
+        }
+        .body-title-country {
+            font-weight: 700;
+        }
+        .body-country {
+            color: gray;
+        }
+        .body-date {
+            float: right;
+            text-align: right;
+            width: 200px; /* Consider using flexbox or grid for better layout than float */
+        }
+        .body-subtitle {
+            margin-bottom: 2px;
+        }
+        .body-subtitle,
+        .body-subtitle-pro {
+            font-size: var(--normal-font);
+            font-style: italic;
+            line-height: var(--line-height);
+            margin-left: 8px;
+            margin-top: 0;
+            text-align: left;
+        }
+        .body-description {
+            color: gray;
+            font-size: var(--normal-font);
+            line-height: var(--line-height);
+            margin-bottom: 2px;
+            margin-left: 8px;
+            text-align: left;
+        }
+        .body-elaboration {
+            font-size: var(--normal-font);
+            margin-left: 22px !important;
+            padding-left: 0 !important;
+            text-align: var(--word-justification);
+        }
+        .body-elaboration-other-skills {
+            margin-top: 3px;
+        }
+        .body-individual-elaboration {
+            list-style-type: disc;
+        }
+        .body-individual-elaboration,
+        .body-sub-individual-elaboration {
+            font-size: var(--normal-font);
+            line-height: var(--line-height);
+            text-justify: inter-word !important;
+            width: auto;
+        }
+        .body-nonlist-elaboration {
+            font-size: var(--normal-font);
+            margin-left: 8px !important;
+            margin-top: 4px;
+            padding-left: 0;
+            text-align: left;
+        }
+        /* Other styles from your provided code ... */
+    </style>
+    <link data-n-head="5" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" defer="">
+    <meta data-n-head="5" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+</head>
+<body>
+<div id="pdf">
+    <div class="resume">
+        {{if .PersonalDetails}}
+        <table class="header-left">
+            <tbody>
+            <tr>
+                <td>
+                    {{if .PersonalDetails.FullName}}<h1 class="header-name">{{.PersonalDetails.FullName}}</h1>{{end}}
+                    <div class="header-details-left">
+                        {{if .PersonalDetails.PhoneNumber}}<a href="tel:{{.PersonalDetails.PhoneNumber}}">{{.PersonalDetails.PhoneNumber}}</a>{{end}}
+                        {{if .PersonalDetails.PhoneNumber}}{{(printf " | ") | html}}{{end}}
+                        {{if .PersonalDetails.Email}}<a href="mailto:{{.PersonalDetails.Email}}">{{.PersonalDetails.Email}}</a>{{end}}
+                        {{if .PersonalDetails.Email}}{{(printf " | ") | html}}{{end}}
+                        {{if .PersonalDetails.Linkedin}}<a href="{{.PersonalDetails.Linkedin}}">{{.PersonalDetails.Linkedin}}</a>{{end}}
+                        {{if .PersonalDetails.PortfolioURL}}{{(printf " | ") | html}}{{end}}
+                        {{if .PersonalDetails.PortfolioURL}}<a href="{{.PersonalDetails.PortfolioURL}}">{{.PersonalDetails.PortfolioURL}}</a>{{end}}
+                    </div>
+                    {{if .PersonalDetails.AddressString}}<div class="header-address">{{.PersonalDetails.AddressString}}</div>{{end}}
+                    {{if .PersonalDetails.Description}}<div class="header-description">{{.PersonalDetails.Description}}</div>{{end}}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div style="clear: both"></div>
+        {{end}}
+
+        <div class="content">
+            {{if .ProfessionalExperience}}
+            <h2 class="body-main-header">Work Experiences</h2>
+            <div class="body-border"></div>
+            <div>
+                {{range .ProfessionalExperience}}
+                    <table class="body-title-country-date">
+                        <tbody>
+                        <tr>
+                            <td class="body-title-country">
+                                <span class="body-title">{{.CompanyName}}</span>
+                                {{if .Location}}<span class="body-country"> - {{.Location}}</span>{{end}}
+                            </td>
+                            <td class="body-date">
+                                {{if .StartDate.Month}}{{.StartDate.Month}} {{end}}{{.StartDate.Year}} - {{if .Current}}Present{{else}}{{if .EndDate.Month}}{{.EndDate.Month}} {{end}}{{.EndDate.Year}}{{end}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    {{if .RoleTitle}}<div class="body-subtitle">{{.RoleTitle}}</div>{{end}}
+                    {{if .Elaboration}}
+                    <ul class="body-elaboration">
+                        {{range .Elaboration}}
+                            <li class="body-individual-elaboration">{{.Text}}</li>
+                        {{end}}
+                    </ul>
+                    {{end}}
+                {{end}}
+            </div>
+            {{end}}
+            
+            {{if .Education}}
+            <div class="">
+                <h2 class="body-main-header">Education Level</h2>
+                <div class="body-border"></div>
+                <div>
+                    {{range .Education}}
+                        <table class="body-title-country-date">
+                            <tbody>
+                            <tr>
+                                <td class="body-title-country">
+                                    <span class="body-title">{{.School}}</span>
+                                    {{if .Location}}<span class="body-country"> - {{.Location}}</span>{{end}}
+                                </td>
+                                <td class="body-date">
+                                    {{if .StartDate.Month}}{{.StartDate.Month}} {{end}}{{.StartDate.Year}} - {{if .EndDate.Month}}{{.EndDate.Month}} {{end}}{{.EndDate.Year}}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="body-subtitle">
+                            {{.DegreeLevel}} {{if .Major}}, {{.Major}}{{end}}
+                            {{if .GPA}}<span>, {{.GPA}}/{{.MaxGPA}}</span>{{end}}
+                        </div>
+                        {{if .Elaboration}}
+                        <ul class="body-elaboration">
+                            {{range .Elaboration}}
+                                <li class="body-individual-elaboration">{{.Text}}</li>
+                            {{end}}
+                        </ul>
+                        {{end}}
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+            
+            {{if .LeadershipExperience}}
+            <div class="">
+                <h2 class="body-main-header">Organisational Experience</h2>
+                <div class="body-border"></div>
+                {{range .LeadershipExperience}}
+                    <table class="body-title-country-date">
+                        <tbody>
+                        <tr>
+                            <td class="body-title-country">
+                                <span class="body-title">{{.OrganisationName}}</span>
+                                {{if .Location}}<span class="body-country"> - {{.Location}}</span>{{end}}
+                            </td>
+                            <td class="body-date">
+                                {{if .StartDate.Month}}{{.StartDate.Month}} {{end}}{{.StartDate.Year}} - {{if .Current}}Present{{else}}{{if .EndDate.Month}}{{.EndDate.Month}} {{end}}{{.EndDate.Year}}{{end}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    {{if .RoleTitle}}<div class="body-subtitle">{{.RoleTitle}}</div>{{end}}
+                     {{if .Elaboration}}
+                    <ul class="body-elaboration">
+                        {{range .Elaboration}}
+                            <li class="body-individual-elaboration">{{.Text}}</li>
+                        {{end}}
+                    </ul>
+                    {{end}}
+                {{end}}
+            </div>
+            {{end}}
+
+            {{if .Others}}
+            <div class="">
+                <h2 class="body-main-header">
+                    Skills, Achievements &amp; Other Experience
+                </h2>
+                <div class="body-border"></div>
+                <ul class="body-elaboration body-elaboration-other-skills">
+                    {{range .Others}}
+                        <li class="body-individual-elaboration">
+                            <b>{{.Category}}</b>
+                            {{if .Title}}<span> ({{.Title}})</span>{{end}}
+                            {{if .Date.Year}}<span> - {{if .Date.Month}}{{.Date.Month}} {{end}}{{.Date.Year}}</span>{{end}}
+                            {{if .Elaboration}}
+                                :
+                                {{range .Elaboration}}
+                                    <span>{{.Text}}</span> {{end}}
+                            {{end}}
+                        </li>
+                    {{end}}
+                </ul>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+</body>
+</html>

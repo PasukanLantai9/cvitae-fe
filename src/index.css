@@ -1,3 +1,25 @@
+/* src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased; /* Otomatis menggunakan Poppins */
+  }
+}
+
+@layer components {
+  .input-style {
+    /* Poppins tidak perlu ditulis lagi di sini karena sudah default dari body/font-sans */
+    @apply mt-1 block w-full px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue text-sm transition-all;
+  }
+  .btn-primary {
+    @apply bg-brand-blue text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-brand-blue-dark transition-colors;
+  }
+  .btn-outline {
+    @apply bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors;
+  }
+}

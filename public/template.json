@@ -1,0 +1,110 @@
+{"personalDetails": {
+    "fullName": "John Doe",
+    "phoneNumber": "123-456-7890",
+    "email": "john.doe@example.com",
+    "linkedin": "https://linkedin.com/in/johndoe",
+    "portfolioUrl": "https://johndoe.dev",
+    "description": "Software Engineer with 5 years of experience.",
+    "addressString": "123 Main St, Springfield, IL"
+  },
+  "professionalExperience": [
+    {
+      "startDate": {
+        "month": "January",
+        "year": 2020
+      },
+      "endDate": {
+        "month": "March",
+        "year": 2022
+      },
+      "roleTitle": "Senior Developer",
+      "companyName": "Tech Solutions",
+      "location": "New York, NY",
+      "current": false,
+      "elaboration": [
+        {
+          "text": "Led the development of a major e-commerce platform."
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "startDate": {
+        "month": "September",
+        "year": 2015
+      },
+      "endDate": {
+        "month": "May",
+        "year": 2019
+      },
+      "school": "University of Illinois",
+      "location": "Urbana-Champaign, IL",
+      "degreeLevel": "Bachelor's",
+      "major": "Computer Science",
+      "gpa": 3.8,
+      "maxGpa": 4,
+      "elaboration": [
+        {
+          "text": "Completed thesis on machine learning algorithms."
+        }
+      ]
+    }
+  ],
+  "leadershipExperience": [
+    {
+      "startDate": {
+        "month": "June",
+        "year": 2019
+      },
+      "endDate": {
+        "month": "August",
+        "year": 2020
+      },
+      "roleTitle": "Project Lead",
+      "organisationName": "Open Source Initiative",
+      "location": "Remote",
+      "current": false,
+      "elaboration": [
+        {
+          "text": "Coordinated a team of developers for an open-source project."
+        }
+      ]
+    }
+  ],
+  "others": [
+    {
+      "elaboration": {
+        "text": "2nd Place on Hackathon"
+      },
+      "name": "Best Paper Award",
+      "date": {
+        "month": "October",
+        "year": 2020
+      },
+      "category": "Achievements"
+    },
+    {
+      "elaboration": {
+        "text": "AWS Devops Certification"
+      },
+      "name": "Best Paper Award",
+      "date": {
+        "month": "October",
+        "year": 2020
+      },
+      "category": "Certificates"
+    },
+    {
+      "elaboration": {
+        "text": "Python"
+      },
+      "name": "Best Paper Award",
+      "date": {
+        "month": "October",
+        "year": 2020
+      },
+      "category": "Skills"
+    }
+  ]
+}
