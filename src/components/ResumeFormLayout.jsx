@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const steps = [
@@ -26,29 +26,92 @@ const ResumeFormLayout = ({
         navigate('/dashboard');
     };
 
-    const handlePreview = () => {
-        if (resumeId) {
-            const previewUrl = `${apiBaseUrl}/resume/${resumeId}/preview`;
-            window.open(previewUrl, '_blank');
-        } else {
-            console.warn('No resumeId provided for preview. Preview button is disabled.');
+    const [isPreviewOpen, setPreviewOpen] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState('');
+
+    const handlePreview = async () => {
+        if (!resumeId) return console.warn('resumeId missing');
+        const token = localStorage.getItem('accessToken');
+        const url = `${apiBaseUrl}/resume/${resumeId}/download`;
+
+        try {
+            const res = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!res.ok) throw new Error('Preview failed');
+
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            setPdfUrl(blobUrl);
+            setPreviewOpen(true);
+        } catch (err) {
+            console.error('Preview failed:', err);
         }
     };
 
-    const handleDownload = () => {
-        if (resumeId) {
-            const downloadUrl = `${apiBaseUrl}/resume/${resumeId}/download`;
-            window.location.href = downloadUrl;
-        } else {
-            console.warn('No resumeId provided for download. Download button is disabled.');
+    const closePreview = () => {
+        setPreviewOpen(false);
+        if (pdfUrl) {
+            URL.revokeObjectURL(pdfUrl);
+            setPdfUrl('');
         }
     };
+
+    const handleDownload = async () => {
+        if (!resumeId) return console.warn('resumeId missing');
+        const token = localStorage.getItem('accessToken');
+        const url = `${apiBaseUrl}/resume/${resumeId}/download`;
+
+        try {
+            const res = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const blob = await res.blob();
+            const filename = `resume-${resumeId}.pdf`;
+
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error('Download failed:', err);
+        }
+    };
+
 
     const currentStepIndex = steps.findIndex(step => step.id === currentStepId);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             {/* Top blue bar - Fixed */}
+            {isPreviewOpen && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+                    <div className="bg-white rounded-lg overflow-hidden shadow-lg w-full max-w-4xl h-[80vh] relative">
+                        <button
+                            onClick={closePreview}
+                            className="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-lg font-bold z-10"
+                        >
+                            &times;
+                        </button>
+                        <iframe
+                            src={pdfUrl}
+                            title="PDF Preview"
+                            className="w-full h-full"
+                            frameBorder="0"
+                        />
+                    </div>
+                </div>
+            )}
             <div className="w-full bg-[#2859A6] flex justify-between items-center px-4 py-3 text-white fixed top-0 left-0 right-0 z-40 h-[56px]">
                 <button
                     onClick={handleLogoClick}
