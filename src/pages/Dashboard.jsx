@@ -1,16 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import { useNavigate } from 'react-router-dom';
 import GoHTMLTemplater from '../utils/GoHTMLTemplater';
-
-const baseFullResumeStructure = {
-    id: null,
-    name: "",
-    personalDetails: { fullName: '', phoneNumber: '', email: '', linkedin: '', description: '', portfolioUrl: '', addressString: '' },
-    professionalExperience: [],
-    education: [],
-    leadershipExperience: [],
-    others: []
-};
+import {useNameModal} from "../hooks/useNameModal.jsx";
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -29,6 +20,8 @@ function Dashboard() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
     const [openDropdownId, setOpenDropdownId] = useState(null); // Untuk dropdown opsi di kartu resume
+
+    const { showModalAndGetName, Modal } = useNameModal();
 
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
@@ -85,7 +78,7 @@ function Dashboard() {
                      setRenderedSoonHtml("<p class='text-red-500 p-2 text-xs text-center'>Soon preview failed (empty/no data).</p>");
                 }
             } catch (e) {
-                setRenderedSoonHtml(`<div class="p-2 text-xs text-red-600 text-center">Error rendering Soon preview.</div>`);
+                setRenderedSoonHtml(`<div class="p-2 text-xs text-red-600 text-center">Error rendering Soon preview. ${e}</div>`);
             }
         }
     }, [rawTemplateHtml, templateData, renderedSoonHtml]);
@@ -171,80 +164,86 @@ function Dashboard() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isMenuOpen]);
 
-const handleCreateNewResume = () => {
-        if (templateData) { // templateData adalah dari /template.json
+    const handleCreateNewResume = async () => {
+        if (!templateData) {
+            alert("Default resume data is not loaded yet. Please wait.");
+            return;
+        }
+
+        // Minta user input nama CV lewat modal (asumsikan sudah dapat di variable `cvName`)
+        const cvName = await showModalAndGetName(); // contoh fungsi modal async, ganti sesuai implementasimu
+        if (!cvName) {
+            return
+        }
+
+        try {
+            // POST request ke backend buat bikin resume baru, hanya kirim { name }
+            const token = localStorage.getItem('accessToken');
+            const response = await fetch(`${apiBaseUrl}/resume`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ name: cvName })
+            });
+
+            if (!response.ok) throw new Error('Failed to create resume');
+
+            const created = await response.json();
+
+            // Buat object lengkap dari template + data backend
             const newResumeObject = {
                 ...JSON.parse(JSON.stringify(templateData)),
-                id: null, // SANGAT PENTING untuk POST baru
-                name: `My New CV ${new Date().toLocaleTimeString()}`,
-                // PASTIKAN section array KOSONG untuk resume baru
+                id: created.id,
+                name: created.name,
                 professionalExperience: [],
                 education: [],
                 leadershipExperience: [],
                 others: []
             };
-            console.log("Dashboard: Creating new resume, sending to Personal:", newResumeObject);
-            navigate('/resume/personal', {
+
+            console.log("Created new resume:", newResumeObject);
+
+            // Navigate ke halaman resume yang baru dengan id dari backend
+            navigate(`/resume/${created.id}`, {
                 state: {
                     resumeData: newResumeObject,
-                    isNew: true, // PASTIKAN INI DIKIRIM
+                    isNew: true,
                     completedSteps: []
                 }
             });
-        } else {
-            alert("Default resume data is not loaded yet. Please wait.");
+        } catch (error) {
+            alert('Error creating new resume: ' + error.message);
         }
     };
 
-    const handleContinueResume = async (resumeId, resumeNameFromList) => {
-        setIsSpecificResumeLoading(true);
-        const token = localStorage.getItem('accessToken');
-        if (!token) { navigate('/login'); setIsSpecificResumeLoading(false); return; }
-        try {
-            const response = await fetch(`${apiBaseUrl}/resume/${resumeId}`, { headers: { 'Authorization': `Bearer ${token}` }});
-            if (response.status === 401) { navigate('/login'); setIsSpecificResumeLoading(false); return; }
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to load resume details (Status: ${response.status}): ${errorText.substring(0,150)}`);
-            }
-            const specificResumeDataFromApi = await response.json();
-            const fullDataToPass = {
-                ...JSON.parse(JSON.stringify(baseFullResumeStructure)),
-                ...specificResumeDataFromApi,
-                id: resumeId,
-                name: specificResumeDataFromApi.name || resumeNameFromList || `CV ${resumeId}`
-            };
-            navigate('/resume/personal', {
-                state: { resumeData: fullDataToPass, isNew: false, completedSteps: [] }
-            });
-        } catch (error) {
-            console.error("Error fetching specific resume for continuation:", error);
-            alert(`Error loading resume: ${error.message}`);
-        } finally {
-            setIsSpecificResumeLoading(false);
-        }
+    const handleContinueResume = async (resumeId) => {
+        navigate(`/resume/${resumeId}`, {})
     };
 
     const handleDeleteResume = async (resumeIdToDelete) => {
         if (!window.confirm("Are you sure you want to delete this resume? This action cannot be undone.")) {
-            setOpenDropdownId(null); // Tutup dropdown jika batal
+            setOpenDropdownId(null);
             return;
         }
-        setIsSpecificResumeLoading(true); // Gunakan state loading yang sama atau buat baru
+        setIsSpecificResumeLoading(true);
         const token = localStorage.getItem('accessToken');
-        if (!token) { /* ... handle no token ... */ setIsSpecificResumeLoading(false); return; }
+        if (!token) { setIsSpecificResumeLoading(false); return; }
 
         try {
             const response = await fetch(`${apiBaseUrl}/resume/${resumeIdToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (response.status === 401) { /* ... handle 401 ... */ return; }
+            if (response.status === 401) { return; }
             if (!response.ok) { // API Delete mungkin mengembalikan 204 atau 200
                 let errorMsg = `Failed to delete resume (Status: ${response.status})`;
-                try { const errorData = await response.json(); errorMsg = errorData.errors?.message || errorData.message || errorMsg; }
-                catch (e) { /* biarkan errorMsg default */ }
-                throw new Error(errorMsg);
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.errors?.message || errorData.message || errorMsg;
+                    throw new Error(errorMsg);
+                } catch (e) {
+                    throw new Error(e);
+                }
+
             }
             console.log(`Resume dengan ID ${resumeIdToDelete} berhasil dihapus.`);
             setMyResumes(prevResumes => prevResumes.filter(resume => resume.id !== resumeIdToDelete));
@@ -316,7 +315,7 @@ const handleCreateNewResume = () => {
                     )}
                 </div>
             </div>
-
+            <Modal />
             {/* Konten Utama Dashboard */}
             <div className='py-6 px-4 sm:px-5 md:px-9'>
                 <h1 className='text-xl md:text-2xl font-bold Poppins mb-6 text-gray-800'>
